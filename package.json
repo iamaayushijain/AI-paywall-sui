@@ -1,0 +1,31 @@
+{
+  "name": "ai-paywall",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "AI paywall using HTTP 402 and Solana payments",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "test:ai": "node test/simulate.js",
+    "test:e2e": "node test/e2e.js",
+    "generate-wallet": "node test/generate-wallet.js"
+  },
+  "keywords": [
+    "ai",
+    "paywall",
+    "solana",
+    "402"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
+    "@x402-solana/client": "^0.2.0",
+    "@x402-solana/core": "^0.3.2",
+    "@x402-solana/server": "^0.2.1",
+    "better-sqlite3": "^12.8.0",
+    "bs58": "^5.0.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

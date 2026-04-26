@@ -1,0 +1,5 @@
+node_modules/
+crawlpay.db
+crawlpay.db-shm
+crawlpay.db-wal
+.env

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Paywall Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 0 2rem;
+      border-bottom: 1px solid #222;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    header h1 span { color: #14f195; }
+
+    header p {
+      color: #888;
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .stat-card .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #666;
+    }
+
+    .stat-card .value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #14f195;
+      margin-top: 0.25rem;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #aaa;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .payments-list { list-style: none; }
+
+    .payment-item {
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      transition: border-color 0.2s;
+    }
+
+    .payment-item:hover { border-color: #14f195; }
+
+    .payment-item .tx {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.8rem;
+      color: #14f195;
+      word-break: break-all;
+    }
+
+    .payment-item .meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #555;
+    }
+
+    .empty-state p { font-size: 1.1rem; }
+
+    .refresh-btn {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.5rem 1.25rem;
+      background: #14f195;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .refresh-btn:hover { opacity: 0.85; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: #1a2e1a;
+      color: #14f195;
+    }
+
+    .score-badge {
+      display: inline-block;
+      padding: 0.1rem 0.45rem;
+      border-radius: 10px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      margin-left: 0.4rem;
+      min-width: 1.4rem;
+      text-align: center;
+    }
+
+    .score-green  { background: #1a3a1a; color: #14f195; }
+    .score-amber  { background: #3a3a1a; color: #f1c414; }
+    .score-gray   { background: #2a2a2a; color: #888; }
+
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      color: #444;
+      font-size: 0.8rem;
+      border-top: 1px solid #181818;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🛡️ AI <span>Paywall</span></h1>
+      <p>HTTP 402 · Solana Devnet · Real-time payment tracking</p>
+    </header>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="label">Total Payments</div>
+        <div class="value" id="total-count">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Latest Payment</div>
+        <div class="value" id="latest-time">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Unique Bots</div>
+        <div class="value" id="unique-bots">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Earned</div>
+        <div class="value" id="total-earned">—</div>
+      </div>
+    </div>
+
+    <div class="section-title">Payment History</div>
+    <ul class="payments-list" id="payments-list"></ul>
+
+    <footer>
+      AI Paywall &mdash; powered by Solana
+      <br />
+      <button class="refresh-btn" onclick="loadDashboard()">Refresh</button>
+    </footer>
+  </div>
+
+  <script>
+    async function loadDashboard() {
+      try {
+        const res = await fetch("/dashboard");
+        const data = await res.json();
+        const payments = data.payments || [];
+
+        document.getElementById("total-count").textContent = data.total;
+
+        if (payments.length > 0) {
+          const latest = new Date(payments[payments.length - 1].timestamp);
+          document.getElementById("latest-time").textContent = latest.toLocaleTimeString();
+        } else {
+          document.getElementById("latest-time").textContent = "—";
+        }
+
+        const bots = new Set(payments.map(p => p.userAgent));
+        document.getElementById("unique-bots").textContent = bots.size;
+
+        const totalEarned = data.total_lamports || 0;
+        document.getElementById("total-earned").textContent =
+          totalEarned.toLocaleString() + " lam";
+
+        const list = document.getElementById("payments-list");
+
+        if (payments.length === 0) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <p>No payments yet</p>
+              <p style="font-size:0.85rem; margin-top:0.5rem;">
+                Send a request with a bot User-Agent and x-payment-tx header to get started.
+              </p>
+            </div>`;
+          return;
+        }
+
+        list.innerHTML = payments
+          .slice()
+          .reverse()
+          .map(p => `
+            <li class="payment-item">
+              <div class="tx">${p.txSignature}</div>
+              <div class="meta">
+                <span>
+                  <span class="badge">${extractBot(p.userAgent)}</span>
+                  <span class="score-badge ${scoreColor(p.relevanceScore)}">${p.relevanceScore ?? '—'}</span>
+                </span>
+                <span>${new Date(p.timestamp).toLocaleString()}</span>
+              </div>
+            </li>`)
+          .join("");
+      } catch (err) {
+        console.error("Failed to load dashboard:", err);
+      }
+    }
+
+    function scoreColor(score) {
+      if (score >= 7) return 'score-green';
+      if (score >= 4) return 'score-amber';
+      return 'score-gray';
+    }
+
+    function extractBot(ua) {
+      const match = ua?.match(/GPTBot|ClaudeBot|PerplexityBot|ChatGPT|Anthropic|CCBot/i);
+      return match ? match[0] : "Bot";
+    }
+
+    loadDashboard();
+    setInterval(loadDashboard, 10000);
+  </script>
+</body>
+</html>
