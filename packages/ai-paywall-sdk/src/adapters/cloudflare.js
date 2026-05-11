@@ -2,8 +2,8 @@
  * Cloudflare Workers adapter.
  *
  * Usage:
- *   import { createPaywall } from "@ai-paywall/sdk";
- *   import { cloudflareHandler } from "@ai-paywall/sdk/cloudflare";
+ *   import { createPaywall } from "tollgate-sdk";
+ *   import { cloudflareHandler } from "tollgate-sdk/cloudflare";
  *
  *   export default {
  *     async fetch(request, env, ctx) {

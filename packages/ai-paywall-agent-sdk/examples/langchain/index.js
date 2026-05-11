@@ -9,8 +9,8 @@ import "dotenv/config";
 import {
   createAgentPaywallClient,
   fromKeypairFile,
-} from "@ai-paywall/agent-sdk";
-import { paywallFetchTool } from "@ai-paywall/agent-sdk/langchain";
+} from "tollgate-agent-sdk";
+import { paywallFetchTool } from "tollgate-agent-sdk/langchain";
 
 const client = createAgentPaywallClient({
   network: process.env.SOLANA_NETWORK || "devnet",

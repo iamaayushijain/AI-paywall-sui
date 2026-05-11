@@ -20,7 +20,7 @@ import "dotenv/config";
 import {
   createAgentPaywallClient,
   fromKeypairFile,
-} from "@ai-paywall/agent-sdk";
+} from "tollgate-agent-sdk";
 
 const BASE_URL = process.env.CONSUMER_URL || "http://localhost:4010";
 const PATH = process.env.PROTECTED_PATH || "/articles/test";

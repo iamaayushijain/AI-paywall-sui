@@ -1,6 +1,6 @@
 {
-  "name": "@ai-paywall/agent-sdk",
-  "version": "0.1.0",
+  "name": "tollgate-agent-sdk",
+  "version": "0.1.1",
   "description": "Drop-in client SDK for AI agents that need to pay HTTP 402 paywalls. Handles x402 challenges, USDC settlement on Solana, retries, and safety guards automatically.",
   "type": "module",
   "license": "MIT",

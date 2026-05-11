@@ -1,11 +1,11 @@
 /**
  * Optional LangChain helper.
  *
- * Wrap an `@ai-paywall/agent-sdk` client into a LangChain `DynamicStructuredTool`
+ * Wrap an `tollgate-agent-sdk` client into a LangChain `DynamicStructuredTool`
  * so an LLM can fetch paid URLs without ever touching crypto plumbing.
  *
- *   import { createAgentPaywallClient, fromKeypairFile } from "@ai-paywall/agent-sdk";
- *   import { paywallFetchTool } from "@ai-paywall/agent-sdk/langchain";
+ *   import { createAgentPaywallClient, fromKeypairFile } from "tollgate-agent-sdk";
+ *   import { paywallFetchTool } from "tollgate-agent-sdk/langchain";
  *
  *   const client = createAgentPaywallClient({
  *     network: "devnet",

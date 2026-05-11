@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
-import { createPaywall } from "@ai-paywall/sdk";
-import { expressMiddleware } from "@ai-paywall/sdk/express";
+import { createPaywall } from "tollgate-sdk";
+import { expressMiddleware } from "tollgate-sdk/express";
 
 const app = express();
 const PORT = process.env.PORT || 4000;

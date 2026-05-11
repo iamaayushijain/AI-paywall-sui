@@ -1,9 +1,9 @@
 /**
- * @ai-paywall/agent-sdk — turnkey 402 paywall client for AI agents.
+ * tollgate-agent-sdk — turnkey 402 paywall client for AI agents.
  *
  * Quick start:
  *
- *   import { createAgentPaywallClient, fromKeypairFile } from "@ai-paywall/agent-sdk";
+ *   import { createAgentPaywallClient, fromKeypairFile } from "tollgate-agent-sdk";
  *
  *   const client = createAgentPaywallClient({
  *     network: "devnet",

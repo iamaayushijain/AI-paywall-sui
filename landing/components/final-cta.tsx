@@ -39,10 +39,10 @@ export function FinalCTA() {
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/download"
+              href="/docs/publisher"
               className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-light text-black font-semibold px-6 py-3 rounded-md transition-colors"
             >
-              Download SDK
+              Read the Docs
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link

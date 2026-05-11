@@ -9,7 +9,7 @@
  *   POST {apiUrl}/v1/verify
  */
 
-const DEFAULT_API_URL = "https://api.ai-paywall.dev";
+const DEFAULT_API_URL = "https://ai-paywall-production-f453.up.railway.app";
 
 export class PaywallClient {
   constructor({ walletAddress, network, usdcMint, apiUrl, fetchImpl, timeoutMs = 8000 }) {

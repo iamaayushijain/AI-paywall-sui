@@ -128,10 +128,10 @@ export function Hero() {
               className="mt-8 flex flex-wrap gap-3"
             >
               <Link
-                href="/download"
+                href="/docs/publisher"
                 className="inline-flex items-center gap-2 bg-accent hover:bg-accent-light text-black font-semibold px-5 py-2.5 rounded-md transition-colors text-sm"
               >
-                Download SDK
+                Get Started
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link

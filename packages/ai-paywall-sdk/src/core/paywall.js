@@ -43,7 +43,7 @@ export async function runPaywall({
   config,
   request: { method = "GET", pathname, headers },
 }) {
-  const protect = config.protect || ["**/*"];
+  const protect = config.protect || ["/*"];
   if (!pathMatches(pathname, protect)) {
     return { kind: "passthrough" };
   }

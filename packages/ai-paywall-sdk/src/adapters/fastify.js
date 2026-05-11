@@ -3,8 +3,8 @@
  *
  * Usage:
  *   import Fastify from "fastify";
- *   import { createPaywall } from "@ai-paywall/sdk";
- *   import { fastifyPlugin } from "@ai-paywall/sdk/fastify";
+ *   import { createPaywall } from "tollgate-sdk";
+ *   import { fastifyPlugin } from "tollgate-sdk/fastify";
  *
  *   const paywall = createPaywall({ walletAddress: process.env.SOLANA_WALLET_ADDRESS });
  *   const app = Fastify();

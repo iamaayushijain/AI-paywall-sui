@@ -27,7 +27,7 @@ const FAQS = [
   },
   {
     q: "What do agents need to integrate on their side?",
-    a: "Install @ai-paywall/agent-sdk, provide a Solana keypair (or custom signer), and replace fetch() with client.fetch(). The SDK handles the entire payment flow — parsing the 402, building and submitting the USDC transfer, retrying the request with the X-PAYMENT header. For LangChain, use paywallFetchTool(client) to expose it as a tool. That's the full integration.",
+    a: "Install tollgate-agent-sdk, provide a Solana keypair (or custom signer), and replace fetch() with client.fetch(). The SDK handles the entire payment flow — parsing the 402, building and submitting the USDC transfer, retrying the request with the X-PAYMENT header. For LangChain, use paywallFetchTool(client) to expose it as a tool. That's the full integration.",
   },
 ];
 

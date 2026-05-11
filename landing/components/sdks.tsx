@@ -5,8 +5,8 @@ import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import { Server, Bot, ArrowRight, Check } from "lucide-react";
 
-const PUBLISHER_CODE = `import { createPaywall } from "@ai-paywall/sdk";
-import { expressMiddleware } from "@ai-paywall/sdk/express";
+const PUBLISHER_CODE = `import { createPaywall } from "tollgate-sdk";
+import { expressMiddleware } from "tollgate-sdk/express";
 
 const paywall = createPaywall({
   walletAddress: process.env.SOLANA_WALLET_ADDRESS,
@@ -25,7 +25,7 @@ app.get("/articles/:slug", (req, res) => {
 const AGENT_CODE = `import {
   createAgentPaywallClient,
   fromKeypairFile,
-} from "@ai-paywall/agent-sdk";
+} from "tollgate-agent-sdk";
 
 const client = createAgentPaywallClient({
   network: "mainnet-beta",
@@ -88,7 +88,7 @@ export function SDKs() {
                   <Server className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <div className="text-xs text-inkSubtle font-mono">@ai-paywall/sdk</div>
+                  <div className="text-xs text-inkSubtle font-mono">tollgate-sdk</div>
                   <div className="text-base font-semibold text-ink">Publisher SDK</div>
                 </div>
               </div>
@@ -117,10 +117,10 @@ export function SDKs() {
             <div className="px-6 pb-6">
               <CodeBlock code={PUBLISHER_CODE} />
               <Link
-                href="/download#publisher"
+                href="/docs/publisher"
                 className="mt-4 inline-flex items-center gap-2 text-sm text-accent hover:text-accent-light transition-colors font-medium"
               >
-                Install publisher SDK <ArrowRight className="w-3.5 h-3.5" />
+                Publisher SDK docs <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </motion.div>
@@ -139,7 +139,7 @@ export function SDKs() {
                   <Bot className="w-5 h-5 text-success" />
                 </div>
                 <div>
-                  <div className="text-xs text-inkSubtle font-mono">@ai-paywall/agent-sdk</div>
+                  <div className="text-xs text-inkSubtle font-mono">tollgate-agent-sdk</div>
                   <div className="text-base font-semibold text-ink">Agent SDK</div>
                 </div>
               </div>
@@ -168,10 +168,10 @@ export function SDKs() {
             <div className="px-6 pb-6">
               <CodeBlock code={AGENT_CODE} />
               <Link
-                href="/download#agent"
+                href="/docs/agent"
                 className="mt-4 inline-flex items-center gap-2 text-sm text-success hover:text-green-400 transition-colors font-medium"
               >
-                Install agent SDK <ArrowRight className="w-3.5 h-3.5" />
+                Agent SDK docs <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </motion.div>

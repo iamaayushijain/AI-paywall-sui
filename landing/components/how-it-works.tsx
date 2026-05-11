@@ -127,7 +127,7 @@ function FlowDiagram() {
       {/* Agent */}
       <rect x="10" y="30" width="120" height="60" rx="8" fill="#1a1a1a" stroke="#2a2a2a" strokeWidth="1" />
       <text x="70" y="55" textAnchor="middle" fill="#a3a3a3" fontSize="11" fontFamily="monospace">AI Agent</text>
-      <text x="70" y="72" textAnchor="middle" fill="#525252" fontSize="10" fontFamily="monospace">@ai-paywall/agent-sdk</text>
+      <text x="70" y="72" textAnchor="middle" fill="#525252" fontSize="10" fontFamily="monospace">tollgate-agent-sdk</text>
 
       {/* Arrow: Agent → Publisher */}
       <line x1="132" y1="60" x2="228" y2="60" stroke="#525252" strokeWidth="1" markerEnd="url(#arrow)" />
@@ -136,7 +136,7 @@ function FlowDiagram() {
       {/* Publisher */}
       <rect x="230" y="30" width="120" height="60" rx="8" fill="#1a1a1a" stroke="#2a2a2a" strokeWidth="1" />
       <text x="290" y="55" textAnchor="middle" fill="#a3a3a3" fontSize="11" fontFamily="monospace">Publisher</text>
-      <text x="290" y="72" textAnchor="middle" fill="#525252" fontSize="10" fontFamily="monospace">@ai-paywall/sdk</text>
+      <text x="290" y="72" textAnchor="middle" fill="#525252" fontSize="10" fontFamily="monospace">tollgate-sdk</text>
 
       {/* Arrow: Publisher → Agent (402) */}
       <line x1="230" y1="75" x2="134" y2="88" stroke="#fbbf24" strokeWidth="1" markerEnd="url(#arrow-accent)" />

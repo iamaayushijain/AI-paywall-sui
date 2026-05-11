@@ -5,7 +5,7 @@
  *   const res = await client.fetch(url, init);
  *
  * On a `200` (or any non-402 response), `client.fetch` is a passthrough
- * over `globalThis.fetch`. On a `402` from an `@ai-paywall/sdk`-compatible
+ * over `globalThis.fetch`. On a `402` from an `tollgate-sdk`-compatible
  * server, it:
  *
  *   1. parses the x402 envelope and the `crawlpay.challenge.token`

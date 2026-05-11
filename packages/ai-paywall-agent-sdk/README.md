@@ -1,11 +1,11 @@
-# @ai-paywall/agent-sdk
+# tollgate-agent-sdk
 
 **Drop-in 402-paywall client for AI agents.** Gives any agent — scrapers,
 LangChain tools, OpenAI function-callers, custom autonomous workers — the
 ability to pay HTTP 402 paywalls automatically and safely.
 
-> If you publish content, use `@ai-paywall/sdk` to **gate** it.
-> If you build agents, use `@ai-paywall/agent-sdk` to **pay** for it.
+> If you publish content, use `tollgate-sdk` to **gate** it.
+> If you build agents, use `tollgate-agent-sdk` to **pay** for it.
 
 ## What it does
 
@@ -29,7 +29,7 @@ returns `402`, the SDK:
 ## Install
 
 ```bash
-npm install @ai-paywall/agent-sdk @solana/web3.js @solana/spl-token @x402-solana/core
+npm install tollgate-agent-sdk @solana/web3.js @solana/spl-token @x402-solana/core
 ```
 
 > The Solana + x402 packages are peer dependencies so your agent project
@@ -41,7 +41,7 @@ npm install @ai-paywall/agent-sdk @solana/web3.js @solana/spl-token @x402-solana
 import {
   createAgentPaywallClient,
   fromKeypairFile,
-} from "@ai-paywall/agent-sdk";
+} from "tollgate-agent-sdk";
 
 const client = createAgentPaywallClient({
   network: "devnet",
@@ -89,7 +89,7 @@ import {
   fromKeypairFile,         // read ~/.config/solana/id.json (or any path)
   fromSecretKeyArray,      // Uint8Array / number[] (Solana CLI JSON format)
   fromSecretKeyBase58,     // base58 64-byte secret
-} from "@ai-paywall/agent-sdk";
+} from "tollgate-agent-sdk";
 ```
 
 For HSM, KMS, browser wallets, or remote signing services, build your own:
@@ -107,7 +107,7 @@ const signer = {
 ## Safety guards
 
 The SDK refuses to sign anything that violates operator policy. Each
-violation throws a typed error from `@ai-paywall/agent-sdk/errors`:
+violation throws a typed error from `tollgate-agent-sdk/errors`:
 
 | Error                          | Code                       | When                                                |
 | ------------------------------ | -------------------------- | --------------------------------------------------- |
@@ -118,7 +118,7 @@ violation throws a typed error from `@ai-paywall/agent-sdk/errors`:
 | `VerificationRejectedError`    | `VERIFICATION_REJECTED`    | Server still rejected the request after payment.   |
 
 ```js
-import { PaymentRefusedError } from "@ai-paywall/agent-sdk";
+import { PaymentRefusedError } from "tollgate-agent-sdk";
 
 try {
   await client.fetch(url);
@@ -135,7 +135,7 @@ try {
 ### LangChain
 
 ```js
-import { paywallFetchTool } from "@ai-paywall/agent-sdk/langchain";
+import { paywallFetchTool } from "tollgate-agent-sdk/langchain";
 
 const tool = paywallFetchTool(client, {
   allowHost: (host) => host.endsWith("example.com"),

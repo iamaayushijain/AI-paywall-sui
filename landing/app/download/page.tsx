@@ -67,7 +67,7 @@ export default function DownloadPage() {
               <Server className="w-4 h-4 text-accent" />
             </div>
             <div>
-              <div className="text-xs text-inkSubtle font-mono">@ai-paywall/sdk</div>
+              <div className="text-xs text-inkSubtle font-mono">tollgate-sdk</div>
               <h2 className="text-xl font-semibold text-ink">Publisher SDK</h2>
             </div>
           </div>
@@ -80,24 +80,24 @@ export default function DownloadPage() {
           <div className="space-y-3">
             <div>
               <div className="text-xs text-inkSubtle mb-2 font-medium">Install</div>
-              <InstallBlock cmd="npm install @ai-paywall/sdk" />
+              <InstallBlock cmd="npm install tollgate-sdk" />
             </div>
 
             <div>
               <div className="text-xs text-inkSubtle mb-2 font-medium">Express</div>
-              <InstallBlock cmd='import { createPaywall } from "@ai-paywall/sdk"; import { expressMiddleware } from "@ai-paywall/sdk/express";' />
+              <InstallBlock cmd='import { createPaywall } from "tollgate-sdk"; import { expressMiddleware } from "tollgate-sdk/express";' />
             </div>
             <div>
               <div className="text-xs text-inkSubtle mb-2 font-medium">Next.js</div>
-              <InstallBlock cmd='import { paywallMiddleware } from "@ai-paywall/sdk/nextjs";' />
+              <InstallBlock cmd='import { paywallMiddleware } from "tollgate-sdk/nextjs";' />
             </div>
             <div>
               <div className="text-xs text-inkSubtle mb-2 font-medium">Fastify</div>
-              <InstallBlock cmd='import { fastifyPlugin } from "@ai-paywall/sdk/fastify";' />
+              <InstallBlock cmd='import { fastifyPlugin } from "tollgate-sdk/fastify";' />
             </div>
             <div>
               <div className="text-xs text-inkSubtle mb-2 font-medium">Cloudflare Workers</div>
-              <InstallBlock cmd='import { cloudflareHandler } from "@ai-paywall/sdk/cloudflare";' />
+              <InstallBlock cmd='import { cloudflareHandler } from "tollgate-sdk/cloudflare";' />
             </div>
           </div>
 
@@ -123,7 +123,7 @@ app.use(expressMiddleware(paywall));`}</pre>
               <Bot className="w-4 h-4 text-success" />
             </div>
             <div>
-              <div className="text-xs text-inkSubtle font-mono">@ai-paywall/agent-sdk</div>
+              <div className="text-xs text-inkSubtle font-mono">tollgate-agent-sdk</div>
               <h2 className="text-xl font-semibold text-ink">Agent SDK</h2>
             </div>
           </div>
@@ -136,17 +136,17 @@ app.use(expressMiddleware(paywall));`}</pre>
           <div className="space-y-3">
             <div>
               <div className="text-xs text-inkSubtle mb-2 font-medium">Install (with peer deps)</div>
-              <InstallBlock cmd="npm install @ai-paywall/agent-sdk @solana/web3.js @solana/spl-token @x402-solana/core" />
+              <InstallBlock cmd="npm install tollgate-agent-sdk @solana/web3.js @solana/spl-token @x402-solana/core" />
             </div>
             <div>
               <div className="text-xs text-inkSubtle mb-2 font-medium">LangChain tool</div>
-              <InstallBlock cmd='import { paywallFetchTool } from "@ai-paywall/agent-sdk/langchain";' />
+              <InstallBlock cmd='import { paywallFetchTool } from "tollgate-agent-sdk/langchain";' />
             </div>
           </div>
 
           <div className="mt-6 p-4 rounded-xl border border-border bg-surface">
             <div className="text-xs text-inkSubtle mb-2 font-medium">Minimum config</div>
-            <pre className="code-block text-inkMuted text-xs">{`import { createAgentPaywallClient, fromKeypairFile } from "@ai-paywall/agent-sdk";
+            <pre className="code-block text-inkMuted text-xs">{`import { createAgentPaywallClient, fromKeypairFile } from "tollgate-agent-sdk";
 
 const client = createAgentPaywallClient({
   network: "mainnet-beta",

@@ -7,15 +7,15 @@
  * Examples:
  *
  *   // middleware.ts (recommended)
- *   import { createPaywall } from "@ai-paywall/sdk";
- *   import { paywallMiddleware } from "@ai-paywall/sdk/nextjs";
+ *   import { createPaywall } from "tollgate-sdk";
+ *   import { paywallMiddleware } from "tollgate-sdk/nextjs";
  *
  *   const paywall = createPaywall({ walletAddress: process.env.SOLANA_WALLET_ADDRESS });
  *   export default paywallMiddleware(paywall);
  *   export const config = { matcher: ["/articles/:path*"] };
  *
  *   // App Router route handler
- *   import { withRouteHandler } from "@ai-paywall/sdk/nextjs";
+ *   import { withRouteHandler } from "tollgate-sdk/nextjs";
  *   export const GET = withRouteHandler(paywall, async (req) => Response.json({ ok: true }));
  */
 

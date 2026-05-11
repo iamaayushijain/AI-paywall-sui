@@ -1,9 +1,9 @@
 /**
- * @ai-paywall/sdk — drop-in AI bot paywall.
+ * tollgate-sdk — drop-in AI bot paywall.
  *
  * Quick start (Express):
- *   import { createPaywall } from "@ai-paywall/sdk";
- *   import { expressMiddleware } from "@ai-paywall/sdk/express";
+ *   import { createPaywall } from "tollgate-sdk";
+ *   import { expressMiddleware } from "tollgate-sdk/express";
  *
  *   const paywall = createPaywall({
  *     walletAddress: process.env.SOLANA_WALLET_ADDRESS,

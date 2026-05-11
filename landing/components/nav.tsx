@@ -11,6 +11,7 @@ const links = [
   { href: "#sdks", label: "SDKs" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
+  { href: "/docs/publisher", label: "Docs" },
 ];
 
 export function Nav() {
@@ -62,7 +63,7 @@ export function Nav() {
             Contact Sales
           </Link>
           <Link
-            href="/download"
+            href="/docs/publisher"
             className="text-sm bg-accent hover:bg-accent-light text-black font-semibold px-4 py-1.5 rounded-md transition-colors"
           >
             Get SDK
@@ -102,7 +103,7 @@ export function Nav() {
               ))}
               <div className="pt-2 border-t border-border flex flex-col gap-2">
                 <Link
-                  href="/download"
+                  href="/docs/publisher"
                   className="text-sm bg-accent hover:bg-accent-light text-black font-semibold px-4 py-2 rounded-md text-center transition-colors"
                 >
                   Get SDK

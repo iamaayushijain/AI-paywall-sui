@@ -1,4 +1,4 @@
-# @ai-paywall/sdk
+# tollgate-sdk
 
 Drop-in **AI bot paywall** for any Node-based web framework — fully wallet-based.
 
@@ -13,7 +13,7 @@ Drop-in **AI bot paywall** for any Node-based web framework — fully wallet-bas
 ## 60-second setup
 
 ```bash
-npm install @ai-paywall/sdk
+npm install tollgate-sdk
 ```
 
 Set your wallet address (this is where USDC lands; nothing else is required):
@@ -30,8 +30,8 @@ That's it. No tenant onboarding, no API key issuance, no admin tokens.
 
 ```js
 import express from "express";
-import { createPaywall } from "@ai-paywall/sdk";
-import { expressMiddleware } from "@ai-paywall/sdk/express";
+import { createPaywall } from "tollgate-sdk";
+import { expressMiddleware } from "tollgate-sdk/express";
 
 const paywall = createPaywall({
   walletAddress: process.env.SOLANA_WALLET_ADDRESS,
@@ -52,8 +52,8 @@ app.get("/articles/:slug", (req, res) => {
 
 ```ts
 // middleware.ts
-import { createPaywall } from "@ai-paywall/sdk";
-import { paywallMiddleware } from "@ai-paywall/sdk/nextjs";
+import { createPaywall } from "tollgate-sdk";
+import { paywallMiddleware } from "tollgate-sdk/nextjs";
 
 const paywall = createPaywall({
   walletAddress: process.env.SOLANA_WALLET_ADDRESS,
@@ -66,7 +66,7 @@ export const config = { matcher: ["/articles/:path*"] };
 App Router route handler:
 
 ```ts
-import { withRouteHandler } from "@ai-paywall/sdk/nextjs";
+import { withRouteHandler } from "tollgate-sdk/nextjs";
 export const GET = withRouteHandler(paywall, async () =>
   Response.json({ paid: true })
 );
@@ -76,8 +76,8 @@ export const GET = withRouteHandler(paywall, async () =>
 
 ```js
 import Fastify from "fastify";
-import { createPaywall } from "@ai-paywall/sdk";
-import { fastifyPlugin } from "@ai-paywall/sdk/fastify";
+import { createPaywall } from "tollgate-sdk";
+import { fastifyPlugin } from "tollgate-sdk/fastify";
 
 const paywall = createPaywall({
   walletAddress: process.env.SOLANA_WALLET_ADDRESS,
@@ -89,8 +89,8 @@ await app.register(fastifyPlugin, { paywall });
 ### Cloudflare Workers
 
 ```js
-import { createPaywall } from "@ai-paywall/sdk";
-import { cloudflareHandler } from "@ai-paywall/sdk/cloudflare";
+import { createPaywall } from "tollgate-sdk";
+import { cloudflareHandler } from "tollgate-sdk/cloudflare";
 
 export default {
   async fetch(request, env) {

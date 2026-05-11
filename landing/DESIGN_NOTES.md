@@ -66,7 +66,7 @@ Scale follows Tailwind defaults (`xs` → `7xl`) — no custom overrides needed.
 
 All features described in the landing page are derived directly from the source code and READMEs — no invented capabilities.
 
-**Publisher SDK (@ai-paywall/sdk v0.2.0)**:
+**Publisher SDK (tollgate-sdk v0.2.0)**:
 - Bot detection: reads from `packages/ai-paywall-sdk/src/core/botDetector.js`
 - Adapters confirmed from `package.json#exports`: `./express`, `./nextjs`, `./fastify`, `./cloudflare`
 - `createPaywall()`, `expressMiddleware()`, `paywallMiddleware()`, `withRouteHandler()`, `fastifyPlugin`, `cloudflareHandler` — all confirmed in source
@@ -74,7 +74,7 @@ All features described in the landing page are derived directly from the source 
 - Sign-In With Solana dashboard — referenced in README
 - Zero Solana deps on server — confirmed (no `@solana/web3.js` in publisher SDK deps)
 
-**Agent SDK (@ai-paywall/agent-sdk v0.1.0)**:
+**Agent SDK (tollgate-agent-sdk v0.1.0)**:
 - `createAgentPaywallClient()`, `client.fetch()`, `client.spend()`, `client.payChallenge()` — confirmed in `client.js`
 - Signer helpers: `fromKeypair`, `fromSecretKeyArray`, `fromSecretKeyBase58`, `fromKeypairFile` — confirmed in `signer.js` exports
 - `paywallFetchTool()` — confirmed in `tools/langchain.js`

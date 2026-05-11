@@ -1,5 +1,28 @@
+# dependencies
 node_modules/
+landing/node_modules/
+packages/*/node_modules/
+
+# environment
+.env
+.env.local
+.env.*.local
+
+# build outputs
+landing/.next/
+landing/out/
+
+# database (local SQLite leftover from early dev)
 crawlpay.db
 crawlpay.db-shm
 crawlpay.db-wal
-.env
+
+# OS / editor
+.DS_Store
+.claude/
+*.swp
+*.swo
+
+# test keypairs — never commit real keypairs
+test/payer-keypair.json
+test/treasury-keypair.json

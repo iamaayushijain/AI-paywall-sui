@@ -18,7 +18,7 @@ const TABS: { id: Tab; label: string; side: "publisher" | "agent" }[] = [
 const CODE: Record<Tab, { lang: string; code: string }> = {
   "publisher-install": {
     lang: "bash",
-    code: `npm install @ai-paywall/sdk
+    code: `npm install tollgate-sdk
 
 # Set your wallet — this is the only config required.
 # Payments land directly in this Solana address.
@@ -27,8 +27,8 @@ SOLANA_WALLET_ADDRESS=YourSolanaWallet...`,
   "publisher-express": {
     lang: "js",
     code: `import express from "express";
-import { createPaywall } from "@ai-paywall/sdk";
-import { expressMiddleware } from "@ai-paywall/sdk/express";
+import { createPaywall } from "tollgate-sdk";
+import { expressMiddleware } from "tollgate-sdk/express";
 
 const paywall = createPaywall({
   walletAddress: process.env.SOLANA_WALLET_ADDRESS,
@@ -51,8 +51,8 @@ app.get("/articles/:slug", (req, res) => {
   "publisher-nextjs": {
     lang: "ts",
     code: `// middleware.ts
-import { createPaywall } from "@ai-paywall/sdk";
-import { paywallMiddleware } from "@ai-paywall/sdk/nextjs";
+import { createPaywall } from "tollgate-sdk";
+import { paywallMiddleware } from "tollgate-sdk/nextjs";
 
 const paywall = createPaywall({
   walletAddress: process.env.SOLANA_WALLET_ADDRESS!,
@@ -65,7 +65,7 @@ export const config = { matcher: ["/articles/:path*"] };
 
 // --- App Router route handler ---
 // app/articles/[slug]/route.ts
-import { withRouteHandler } from "@ai-paywall/sdk/nextjs";
+import { withRouteHandler } from "tollgate-sdk/nextjs";
 
 export const GET = withRouteHandler(paywall, async (req) =>
   Response.json({ content: "...", paid: true })
@@ -73,7 +73,7 @@ export const GET = withRouteHandler(paywall, async (req) =>
   },
   "agent-install": {
     lang: "bash",
-    code: `npm install @ai-paywall/agent-sdk \\
+    code: `npm install tollgate-agent-sdk \\
   @solana/web3.js \\
   @solana/spl-token \\
   @x402-solana/core
@@ -87,7 +87,7 @@ export const GET = withRouteHandler(paywall, async (req) =>
   createAgentPaywallClient,
   fromKeypairFile,
   PaymentRefusedError,
-} from "@ai-paywall/agent-sdk";
+} from "tollgate-agent-sdk";
 
 const client = createAgentPaywallClient({
   network: "mainnet-beta",
@@ -110,8 +110,8 @@ try {
   },
   "agent-langchain": {
     lang: "js",
-    code: `import { createAgentPaywallClient, fromKeypairFile } from "@ai-paywall/agent-sdk";
-import { paywallFetchTool } from "@ai-paywall/agent-sdk/langchain";
+    code: `import { createAgentPaywallClient, fromKeypairFile } from "tollgate-agent-sdk";
+import { paywallFetchTool } from "tollgate-agent-sdk/langchain";
 import { createOpenAIToolsAgent, AgentExecutor } from "langchain/agents";
 
 const client = createAgentPaywallClient({
@@ -248,7 +248,7 @@ export function CodeInAction() {
           <div className="border-t border-border px-4 py-2 flex items-center gap-2">
             <Terminal className="w-3.5 h-3.5 text-inkSubtle" />
             <span className="text-xs text-inkSubtle">
-              {active.startsWith("publisher") ? "@ai-paywall/sdk" : "@ai-paywall/agent-sdk"} — MIT license
+              {active.startsWith("publisher") ? "tollgate-sdk" : "tollgate-agent-sdk"} — MIT license
             </span>
           </div>
         </motion.div>

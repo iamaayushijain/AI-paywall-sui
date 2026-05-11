@@ -1,5 +1,5 @@
 /**
- * Typed errors thrown by @ai-paywall/agent-sdk.
+ * Typed errors thrown by tollgate-agent-sdk.
  *
  * Agent operators should generally catch `PaywallError` and inspect `code`
  * to decide whether to retry, surface to the user, or fail the task.

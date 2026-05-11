@@ -14,9 +14,9 @@ const NAV = [
   {
     heading: "Developers",
     links: [
-      { label: "Download SDK", href: "/download" },
-      { label: "Publisher SDK", href: "/download#publisher" },
-      { label: "Agent SDK", href: "/download#agent" },
+      { label: "Docs", href: "/docs/publisher" },
+      { label: "Publisher SDK", href: "/docs/publisher" },
+      { label: "Agent SDK", href: "/docs/agent" },
       { label: "FAQ", href: "/#faq" },
     ],
   },
