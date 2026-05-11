@@ -13,8 +13,8 @@
  * `meta.preTokenBalances` / `meta.postTokenBalances` from the RPC. Token
  * balance deltas don't lie.
  *
- * Replay protection comes from `payments.js`'s SQLite-backed `isTxCached` /
- * `cacheTx`, which survives server restarts unlike an in-memory map.
+ * Replay protection comes from `payments.js`'s shared-database-backed
+ * `isTxCached` / `cacheTx`, which survives server restarts unlike an in-memory map.
  */
 
 import {
@@ -28,6 +28,7 @@ import { parseX402Payment } from '@x402-solana/core';
 import bs58 from 'bs58';
 
 import { isTxCached, cacheTx } from '../data/payments.js';
+import { verifyPaymentChallenge } from './paymentChallenge.js';
 
 const NETWORK = process.env.SOLANA_NETWORK || 'devnet';
 
@@ -87,16 +88,34 @@ async function fetchTxWithRetry(signature, attempts = 8, delayMs = 500) {
  *                                           against an in-payload `resource` field can be added).
  * @param {number|string} maxAmountMicroUsdc Required price in micro-USDC (1e6 = $1).
  */
-export async function verifyPayment(paymentHeader, _resource, maxAmountMicroUsdc) {
+export async function verifyPayment(paymentHeader, resource, maxAmountMicroUsdc, challengeTokenFromHeader) {
   try {
-    return await verifyPaymentInner(paymentHeader, _resource, maxAmountMicroUsdc);
+    return await verifyPaymentInner(
+      paymentHeader,
+      resource,
+      maxAmountMicroUsdc,
+      challengeTokenFromHeader,
+    );
   } catch (err) {
     // Defensive — never let RPC/network errors crash the request handler.
     return { verified: false, error: `Verification error: ${err.message}` };
   }
 }
 
-async function verifyPaymentInner(paymentHeader, _resource, maxAmountMicroUsdc) {
+function extractChallengeTokenFromPayload(payload) {
+  if (!payload || typeof payload !== 'object') return null;
+  return payload.challengeToken
+    || payload.challenge_token
+    || payload?.metadata?.challengeToken
+    || payload?.metadata?.challenge_token
+    || payload?.metadata?.crawlpay?.challengeToken
+    || payload?.metadata?.crawlpay?.challenge_token
+    || payload?.crawlpay?.challengeToken
+    || payload?.crawlpay?.challenge_token
+    || null;
+}
+
+async function verifyPaymentInner(paymentHeader, resource, maxAmountMicroUsdc, challengeTokenFromHeader) {
   if (!paymentHeader) {
     return { verified: false, error: 'Missing X-PAYMENT header' };
   }
@@ -111,6 +130,13 @@ async function verifyPaymentInner(paymentHeader, _resource, maxAmountMicroUsdc) 
     return { verified: false, error: `Unsupported payment scheme: ${payment.scheme}` };
   }
 
+  const challengeTokenFromPayload = extractChallengeTokenFromPayload(payment.payload);
+  const challengeToken = challengeTokenFromPayload || challengeTokenFromHeader;
+  const challengeCheck = verifyPaymentChallenge(challengeToken, resource);
+  if (!challengeCheck.ok) {
+    return { verified: false, error: `Invalid payment challenge: ${challengeCheck.error}` };
+  }
+
   let signature = payment.payload.signature || null;
   if (!signature && payment.payload.serializedTransaction) {
     signature = extractSignatureFromSerialized(payment.payload.serializedTransaction);
@@ -119,7 +145,7 @@ async function verifyPaymentInner(paymentHeader, _resource, maxAmountMicroUsdc) 
     return { verified: false, error: 'Could not extract transaction signature from payment' };
   }
 
-  if (isTxCached(signature)) {
+  if (await isTxCached(signature)) {
     return { verified: false, error: 'Replay: this transaction has already been redeemed' };
   }
 
@@ -204,7 +230,13 @@ async function verifyPaymentInner(paymentHeader, _resource, maxAmountMicroUsdc) 
   });
   const payer = payerEntry?.owner || null;
 
-  cacheTx(signature);
+  await cacheTx(signature);
 
-  return { verified: true, received: delta, payer, signature };
+  return {
+    verified: true,
+    received: delta,
+    payer,
+    signature,
+    challengeNonce: challengeCheck.nonce,
+  };
 }

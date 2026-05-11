@@ -118,7 +118,7 @@ async function buildX402Payment(payToAta, amountMicroUsdc) {
 }
 
 async function runTest() {
-  const testPath = '/blog/ai-data-pricing';
+  const testPath = '/blog/ai-data-pricing-test';
 
   const balance = await checkPayerBalance();
   if (balance === 0) {
@@ -135,6 +135,10 @@ async function runTest() {
   if (r1.status !== 402) throw new Error(`Expected 402, got ${r1.status}`);
 
   const accept = r1Body.accepts[0];
+  const challengeToken = r1Body?.crawlpay?.challenge?.token;
+  if (!challengeToken) {
+    throw new Error('Missing crawlpay.challenge.token in 402 response');
+  }
 
   console.log('\n2. Building x402 payment...');
   const xPayment = await buildX402Payment(accept.payTo, accept.maxAmountRequired);
@@ -145,6 +149,7 @@ async function runTest() {
     headers: {
       'User-Agent': 'GPTBot',
       'x-payment':  xPayment,
+      'x-paywall-challenge': challengeToken,
     },
   });
   console.log('  Status:', r2.status);
@@ -153,7 +158,8 @@ async function runTest() {
   if (r2.status !== 200) throw new Error(`Expected 200, got ${r2.status}: ${r2Body.error}`);
 
   console.log('\n4. Checking dashboard...');
-  const dash = await (await fetch(`${BASE_URL}/dashboard`)).json();
+  const dash = await (await fetch(`${BASE_URL}/v1/dashboard`)).json();
+  console.log("Dashboard response:", dash);
   console.log('  Total payments:', dash.total);
   console.log('  Latest:', dash.payments[0]);
 

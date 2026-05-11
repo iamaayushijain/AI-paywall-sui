@@ -1,0 +1,41 @@
+{
+  "name": "@ai-paywall/agent-sdk",
+  "version": "0.1.0",
+  "description": "Drop-in client SDK for AI agents that need to pay HTTP 402 paywalls. Handles x402 challenges, USDC settlement on Solana, retries, and safety guards automatically.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./signer": "./src/core/signer.js",
+    "./errors": "./src/core/errors.js",
+    "./langchain": "./src/tools/langchain.js"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "keywords": [
+    "ai-agent",
+    "paywall",
+    "x402",
+    "solana",
+    "usdc",
+    "http-402",
+    "fetch",
+    "langchain",
+    "openai-tools",
+    "monetization"
+  ],
+  "scripts": {
+    "lint": "node --check src/index.js && node --check src/core/client.js && node --check src/core/payment.js && node --check src/core/signer.js && node --check src/core/guards.js && node --check src/core/spendTracker.js && node --check src/core/errors.js && node --check src/tools/langchain.js"
+  },
+  "peerDependencies": {
+    "@solana/spl-token": "^0.4.0",
+    "@solana/web3.js": "^1.95.0",
+    "@x402-solana/core": "^0.3.0"
+  }
+}
