@@ -16,6 +16,8 @@ Tollgate makes AI agent content access **enforceable at the protocol layer**. Pu
 | Agent SDK (npm) | https://www.npmjs.com/package/tollgate-agent-sdk |
 | Publisher docs | https://tollgate.xyz/docs/publisher |
 | Agent docs | https://tollgate.xyz/docs/agent |
+| Demo URL | https://youtu.be/j6HCCdw-Sas|
+
 
 ---
 
