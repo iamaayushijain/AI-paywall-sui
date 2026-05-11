@@ -10,12 +10,12 @@ Tollgate makes AI agent content access **enforceable at the protocol layer**. Pu
 
 | Resource | URL |
 |---|---|
-| Landing page | https://tollgate.vercel.app |
+| Landing page | tollgate.xyz|
 | Facilitator API | https://ai-paywall-production-f453.up.railway.app |
 | Publisher SDK (npm) | https://www.npmjs.com/package/tollgate-sdk |
 | Agent SDK (npm) | https://www.npmjs.com/package/tollgate-agent-sdk |
-| Publisher docs | https://tollgate.vercel.app/docs/publisher |
-| Agent docs | https://tollgate.vercel.app/docs/agent |
+| Publisher docs | https://tollgate.xyz/docs/publisher |
+| Agent docs | https://tollgate.xyz/docs/agent |
 
 ---
 
