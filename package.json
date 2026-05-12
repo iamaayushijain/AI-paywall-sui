@@ -8,6 +8,7 @@
     "start": "node server/index.js",
     "test:ai": "node test/simulate.js",
     "test:e2e": "node test/e2e.js",
+    "test:dodo": "node test/e2e-dodo.js",
     "generate-wallet": "node test/generate-wallet.js"
   },
   "keywords": [
@@ -18,6 +19,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",
     "@supabase/supabase-js": "^2.104.1",
@@ -25,6 +27,7 @@
     "@x402-solana/core": "^0.3.2",
     "@x402-solana/server": "^0.2.1",
     "bs58": "^5.0.0",
+    "dodopayments": "^1.53.2",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "lru-cache": "^11.3.5",

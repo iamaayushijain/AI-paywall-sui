@@ -13,7 +13,8 @@
     "./express": "./src/adapters/express.js",
     "./nextjs": "./src/adapters/nextjs.js",
     "./fastify": "./src/adapters/fastify.js",
-    "./cloudflare": "./src/adapters/cloudflare.js"
+    "./cloudflare": "./src/adapters/cloudflare.js",
+    "./dodo": "./src/adapters/dodo.js"
   },
   "files": [
     "src",

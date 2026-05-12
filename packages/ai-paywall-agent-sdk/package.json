@@ -12,7 +12,11 @@
     ".": "./src/index.js",
     "./signer": "./src/core/signer.js",
     "./errors": "./src/core/errors.js",
-    "./langchain": "./src/tools/langchain.js"
+    "./langchain": "./src/tools/langchain.js",
+    "./mcp": "./src/mcp/server.js"
+  },
+  "bin": {
+    "tollgate-mcp": "./src/mcp/server.js"
   },
   "files": [
     "src",
@@ -34,6 +38,7 @@
     "lint": "node --check src/index.js && node --check src/core/client.js && node --check src/core/payment.js && node --check src/core/signer.js && node --check src/core/guards.js && node --check src/core/spendTracker.js && node --check src/core/errors.js && node --check src/tools/langchain.js"
   },
   "peerDependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
     "@solana/spl-token": "^0.4.0",
     "@solana/web3.js": "^1.95.0",
     "@x402-solana/core": "^0.3.0"

@@ -11,6 +11,7 @@ import {
   scorePageValue,           // ← replaces scoreRelevance + getContentSignals
 } from '../services/relevanceScorer.js';
 import { createPaymentChallenge } from '../services/paymentChallenge.js';
+import { verifyContentToken } from '../adapters/dodo/verifyContentToken.js';
 
 const router = Router();
 const BASE_PRICE_MICRO_USDC = 1_000;
@@ -68,10 +69,70 @@ async function handle(req, res) {
     });
   }
 
+  // ── Dodo adapter: verify x-tollgate-token if present ────────────────────
+  const tollgateToken = req.headers['x-tollgate-token'];
+  if (tollgateToken) {
+    return new Promise((resolve) => {
+      verifyContentToken(req, res, (err) => {
+        if (err || !req.tollgate) return resolve(); // fall through to 402
+        const content = getPageContent(req.path);
+        resolve(res.json({
+          status:  'ok',
+          message: 'Payment verified via Dodo. Content unlocked.',
+          content,
+          tollgate: req.tollgate,
+        }));
+      });
+    });
+  }
+
   const xPayment = req.headers['x-payment'];
 
   // ── 402: No payment header yet ───────────────────────────────────────────
   if (!xPayment) {
+    // If Dodo is configured, delegate to Dodo adapter instead of Solana.
+    if (process.env.DODO_PAYMENTS_API_KEY) {
+      try {
+        const agentPaymentMethod = req.headers['x-dodo-payment-method'] || null;
+        const dodoRes = await fetch(`http://localhost:${process.env.PORT || 3000}/v1/dodo/session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            publisherId:     process.env.WALLET_ADDRESS || 'tollgate-server',
+            contentId:       req.path,
+            price:           0.01,
+            paymentMethodId: agentPaymentMethod,
+          }),
+        });
+        const session = await dodoRes.json();
+        const paymentHeader = JSON.stringify({
+          amount:      '0.01',
+          currency:    'USD',
+          adapter:     'dodo',
+          payment_url: session.paymentUrl,
+          session_id:  session.sessionId,
+          expires_in:  session.expiresIn || 300,
+        });
+        return res.status(402)
+          .set('x-payment-required', paymentHeader)
+          .json({
+            error:       'Payment required',
+            adapter:     'dodo',
+            payment_url: session.paymentUrl,
+            session_id:  session.sessionId,
+            expires_in:  session.expiresIn || 300,
+            instructions: [
+              '1. Complete payment at payment_url',
+              `2. Poll GET /v1/dodo/session/${session.sessionId}/status until status=paid`,
+              `3. GET /v1/dodo/session/${session.sessionId}/token to receive x-tollgate-token`,
+              '4. Retry this request with header: x-tollgate-token: <token>',
+            ],
+          });
+      } catch (err) {
+        console.warn('[content] Dodo session creation failed, falling back to Solana:', err.message);
+      }
+    }
+
     // Score without body — conservative estimate shown to the bot upfront.
     const scoringParams = buildScoringParams(req);
     const { price, score, breakdown } = getPriceForRequest(

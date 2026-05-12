@@ -7,10 +7,16 @@ import contentRoute from "./routes/content.js";
 import policyRoute from "./routes/policy.js";
 import dashboardRoute from "./routes/dashboard.js";
 import v1Route from "./routes/v1.js";
+import dodoWebhookRoute from "./adapters/dodo/webhookRoute.js";
+import dodoApiRoute from "./adapters/dodo/apiRoute.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Webhook route must be mounted BEFORE express.json() so it gets the raw body
+// for HMAC signature verification.
+app.use("/webhook/dodo", express.raw({ type: "*/*" }), dodoWebhookRoute);
 
 app.use(express.json());
 
@@ -21,6 +27,7 @@ app.use(express.static(path.join(__dirname, "../client")));
 // Specific routes — must come before the catch-all
 app.use("/.well-known/ai-policy.json", policyRoute);
 app.use("/dashboard", dashboardRoute);
+app.use("/v1/dodo", dodoApiRoute);
 app.use("/v1", v1Route);
 
 app.get("/health", (_req, res) => {
