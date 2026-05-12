@@ -126,7 +126,11 @@ const client = createAgentPaywallClient({
 });
 
 // Drop-in fetch — auto-pays 402s, retries transparently
-const res = await client.fetch("https://example.com/articles/ai-trends");
+const res = await client.fetch("https://example.com/articles/ai-trends", {
+  headers: {
+    "User-Agent": "GPTBot"
+  }
+});
 const data = await res.json();
 
 console.log("paid:", res.paywallPayment?.signature);
@@ -149,7 +153,7 @@ Full reference: [docs/AGENT.md](docs/AGENT.md) · [online docs](https://tollgate
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/your-org/ai-paywall.git
+git clone https://github.com/iamaayushijain/ai-paywall.git
 cd ai-paywall
 npm install
 ```
