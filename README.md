@@ -19,9 +19,6 @@ Tollgate makes AI agent access to web content **enforceable at the protocol laye
 | Resource | URL |
 |---|---|
 | Frontend | https://sui.tollgate.xyz |
-| Facilitator API | https://ai-paywall-production-f453.up.railway.app |
-| Publisher SDK (npm) | https://www.npmjs.com/package/tollgate-sdk |
-| Agent SDK (npm) | https://www.npmjs.com/package/tollgate-agent-sdk |
 | SUI Explorer — Package | https://suiscan.xyz/testnet/object/0x39ec449717b8df2737423620ed3a893899cc35d08a974505f0bafee2bf190168 |
 
 ---
@@ -118,19 +115,6 @@ Score ≥ threshold → HTTP 402. Humans pass through with zero overhead.
 ---
 
 ## Quick Start
-
-### Hit the live server
-
-```bash
-# Health check
-curl https://ai-paywall-production-f453.up.railway.app/health
-
-# As a human — passes through with 200
-curl https://ai-paywall-production-f453.up.railway.app/articles/test
-
-# As an AI bot — blocked with 402 + on-chain challenge
-curl -A "GPTBot/1.0" https://ai-paywall-production-f453.up.railway.app/articles/test
-```
 
 ### Publisher SDK — gate your content
 
@@ -247,7 +231,7 @@ npm run dev
 
 ## API Reference
 
-Base URL: `https://ai-paywall-production-f453.up.railway.app`
+Base URL: `http://localhost:3001` (or your deployed server URL)
 
 | Method | Route | Description |
 |---|---|---|
@@ -347,7 +331,7 @@ tollgate-sui/
 | Server | Node.js (ES Modules), Express |
 | Bot detection | Multi-signal UA + IP + DNS scoring |
 | Frontend | Next.js 14, Tailwind CSS, Framer Motion |
-| Deployment | Railway (server) · Vercel (frontend) |
+| Deployment | Vercel (frontend) |
 | SUI SDK | `@mysten/sui` |
 
 ---
