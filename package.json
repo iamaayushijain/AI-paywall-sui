@@ -1,36 +1,29 @@
 {
-  "name": "ai-paywall",
+  "name": "tollgate-sui",
   "version": "1.0.0",
   "type": "module",
-  "description": "AI paywall using HTTP 402 and Solana payments",
-  "main": "server/index.js",
+  "description": "Trustless HTTP 402 AI paywall on SUI — on-chain challenge/response with Move contracts, revenue splitting vaults, and zero-database replay protection.",
+  "main": "server/sui-index.js",
   "scripts": {
-    "start": "node server/index.js",
-    "test:ai": "node test/simulate.js",
-    "test:e2e": "node test/e2e.js",
-    "test:dodo": "node test/e2e-dodo.js",
-    "generate-wallet": "node test/generate-wallet.js"
+    "start": "node server/sui-index.js",
+    "demo": "node scripts/demo.js",
+    "pay": "node scripts/pay-challenge.js",
+    "test:sui": "node test/sui-e2e.js",
+    "export-sui-key": "node scripts/export-sui-key.js"
   },
   "keywords": [
     "ai",
     "paywall",
-    "solana",
-    "402"
+    "sui",
+    "move",
+    "http-402",
+    "micropayments",
+    "web3"
   ],
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "@solana/spl-token": "^0.4.14",
-    "@solana/web3.js": "^1.98.4",
-    "@supabase/supabase-js": "^2.104.1",
-    "@x402-solana/client": "^0.2.0",
-    "@x402-solana/core": "^0.3.2",
-    "@x402-solana/server": "^0.2.1",
-    "bs58": "^5.0.0",
-    "dodopayments": "^1.53.2",
+    "@mysten/sui": "^2.19.0",
     "dotenv": "^16.6.1",
-    "express": "^4.21.2",
-    "lru-cache": "^11.3.5",
-    "tweetnacl": "^1.0.3"
+    "express": "^4.21.2"
   }
 }

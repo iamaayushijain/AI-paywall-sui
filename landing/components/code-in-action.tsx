@@ -4,130 +4,127 @@ import { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Copy, Check, Terminal } from "lucide-react";
 
-type Tab = "publisher-install" | "publisher-express" | "publisher-nextjs" | "agent-install" | "agent-basic" | "agent-langchain";
+type Tab = "publisher-install" | "publisher-express" | "publisher-vault" | "agent-install" | "agent-basic" | "agent-vault";
 
 const TABS: { id: Tab; label: string; side: "publisher" | "agent" }[] = [
   { id: "publisher-install", label: "Install", side: "publisher" },
   { id: "publisher-express", label: "Express", side: "publisher" },
-  { id: "publisher-nextjs", label: "Next.js", side: "publisher" },
+  { id: "publisher-vault", label: "Vault Split", side: "publisher" },
   { id: "agent-install", label: "Install", side: "agent" },
   { id: "agent-basic", label: "Basic", side: "agent" },
-  { id: "agent-langchain", label: "LangChain", side: "agent" },
+  { id: "agent-vault", label: "Vault Mode", side: "agent" },
 ];
 
 const CODE: Record<Tab, { lang: string; code: string }> = {
   "publisher-install": {
     lang: "bash",
-    code: `npm install tollgate-sdk
+    code: `npm install ai-paywall-sdk-sui @mysten/sui
 
-# Set your wallet — this is the only config required.
-# Payments land directly in this Solana address.
-SOLANA_WALLET_ADDRESS=YourSolanaWallet...`,
+# Required environment variables:
+SUI_PACKAGE_ID=0xff98a1daa3a52be512b85856a93e749d...
+SUI_SERVER_SECRET_KEY=suiprivkey1qr9vrgztfcku2a65...
+SUI_NETWORK=testnet`,
   },
   "publisher-express": {
     lang: "js",
     code: `import express from "express";
-import { createPaywall } from "tollgate-sdk";
-import { expressMiddleware } from "tollgate-sdk/express";
+import { createPaywall } from "ai-paywall-sdk-sui";
+import { expressMiddleware } from "ai-paywall-sdk-sui/express";
 
 const paywall = createPaywall({
-  walletAddress: process.env.SOLANA_WALLET_ADDRESS,
-  network: "mainnet-beta",
+  packageId: process.env.SUI_PACKAGE_ID,
+  serverKey: process.env.SUI_SERVER_SECRET_KEY,
+  network: "testnet",
   protect: ["/articles/*", "/blog/*"],
-  basePriceMicroUsdc: 1_000, // $0.001 per crawl
-
-  // Optional: hook for analytics, logging, etc.
-  onDetection: (d) => console.log("bot detected:", d.botName, d.score),
+  priceMist: 1_000_000, // 0.001 SUI per crawl
 });
 
 const app = express();
 app.use(expressMiddleware(paywall));
 
 app.get("/articles/:slug", (req, res) => {
-  // req.paywallPayment is set if a payment was verified
-  res.json({ content: "...", paid: true });
+  // req.suiPayment is set when payment is verified
+  res.json({ content: "...", payer: req.suiPayment?.payer });
 });`,
   },
-  "publisher-nextjs": {
-    lang: "ts",
-    code: `// middleware.ts
-import { createPaywall } from "tollgate-sdk";
-import { paywallMiddleware } from "tollgate-sdk/nextjs";
+  "publisher-vault": {
+    lang: "js",
+    code: `import { createPaywall } from "ai-paywall-sdk-sui";
+import { expressMiddleware } from "ai-paywall-sdk-sui/express";
 
+// Enable PublisherVault for automatic revenue splitting:
+// publisher 80% / content pool 15% / protocol 5%
+// Create vault once via POST /sui/v1/vault/create,
+// then set SUI_VAULT_ID in your environment.
 const paywall = createPaywall({
-  walletAddress: process.env.SOLANA_WALLET_ADDRESS!,
-  basePriceMicroUsdc: 1_000,
+  packageId: process.env.SUI_PACKAGE_ID,
+  serverKey: process.env.SUI_SERVER_SECRET_KEY,
+  network: "testnet",
+  priceMist: 1_000_000,
+
+  // Agents will call pay_and_unlock_split instead of pay_and_unlock.
+  // Payment is atomically split in a single Move PTB.
+  vaultId: process.env.SUI_VAULT_ID,
 });
 
-export default paywallMiddleware(paywall);
-
-export const config = { matcher: ["/articles/:path*"] };
-
-// --- App Router route handler ---
-// app/articles/[slug]/route.ts
-import { withRouteHandler } from "tollgate-sdk/nextjs";
-
-export const GET = withRouteHandler(paywall, async (req) =>
-  Response.json({ content: "...", paid: true })
-);`,
+app.use(expressMiddleware(paywall));`,
   },
   "agent-install": {
     lang: "bash",
-    code: `npm install tollgate-agent-sdk \\
-  @solana/web3.js \\
-  @solana/spl-token \\
-  @x402-solana/core
+    code: `npm install ai-paywall-agent-sdk-sui @mysten/sui
 
-# Peer deps required — keeps your agent project
-# in control of Solana SDK versions.`,
+# Peer dep — keeps your project in control of SUI SDK version.
+# Fund the agent address before running:
+# sui client faucet --address <your-address>`,
   },
   "agent-basic": {
     lang: "js",
     code: `import {
-  createAgentPaywallClient,
+  createSuiAgentClient,
   fromKeypairFile,
-  PaymentRefusedError,
-} from "tollgate-agent-sdk";
+  BudgetExceededError,
+} from "ai-paywall-agent-sdk-sui";
 
-const client = createAgentPaywallClient({
-  network: "mainnet-beta",
-  signer: fromKeypairFile(), // ~/.config/solana/id.json
-  maxAmountMicroUsdc: 10_000,   // hard cap: $0.01/request
-  maxTotalMicroUsdc: 1_000_000, // session budget: $1.00
+const client = createSuiAgentClient({
+  network: "testnet",
+  signer: fromKeypairFile(), // ~/.sui/sui_config/sui.keystore
+  maxPerRequestMist: 10_000_000,  // hard cap: 0.01 SUI/request
+  maxTotalMist: 1_000_000_000,    // session budget: 1 SUI
 
-  onPayment: (p) => console.log("paid:", p.signature, p.amountMicroUsdc),
+  onPayment: (p) => console.log("paid:", p.txDigest, p.priceMist),
 });
 
 try {
   const res = await client.fetch("https://yoursite.com/articles/ai");
   const data = await res.json();
-  console.log("spend so far:", client.spend());
+  console.log("spent:", client.spend(), "MIST");
 } catch (err) {
-  if (err instanceof PaymentRefusedError) {
-    // Policy refused — do not retry
+  if (err instanceof BudgetExceededError) {
+    // Budget cap hit — do not retry
   }
 }`,
   },
-  "agent-langchain": {
+  "agent-vault": {
     lang: "js",
-    code: `import { createAgentPaywallClient, fromKeypairFile } from "tollgate-agent-sdk";
-import { paywallFetchTool } from "tollgate-agent-sdk/langchain";
-import { createOpenAIToolsAgent, AgentExecutor } from "langchain/agents";
+    code: `import { createSuiAgentClient, fromKeypairFile } from "ai-paywall-agent-sdk-sui";
 
-const client = createAgentPaywallClient({
-  network: "mainnet-beta",
+const client = createSuiAgentClient({
+  network: "testnet",
   signer: fromKeypairFile(),
-  maxAmountMicroUsdc: 5_000,
+  maxPerRequestMist: 10_000_000,
 });
 
-const tool = paywallFetchTool(client, {
-  allowHost: (host) => host.endsWith("youralloweddomain.com"),
-});
+// If the server is in vault (split) mode, the 402 body includes:
+// challenge.vaultObjectId — client detects this automatically and
+// calls pay_and_unlock_split instead of pay_and_unlock.
+// No extra config required — the client handles both modes.
 
-const agent = createOpenAIToolsAgent({ llm, tools: [tool], prompt });
-const executor = AgentExecutor.fromAgentAndTools({ agent, tools: [tool] });
+const res = await client.fetch("https://yoursite.com/premium/article");
+const data = await res.json();
 
-const result = await executor.invoke({ input: "Fetch the article at ..." });`,
+// data.payment.split shows publisher/pool/protocol breakdown:
+// { publisherMist: 800000, poolMist: 150000, protocolMist: 50000 }
+console.log(data.payment?.split);`,
   },
 };
 
@@ -248,7 +245,7 @@ export function CodeInAction() {
           <div className="border-t border-border px-4 py-2 flex items-center gap-2">
             <Terminal className="w-3.5 h-3.5 text-inkSubtle" />
             <span className="text-xs text-inkSubtle">
-              {active.startsWith("publisher") ? "tollgate-sdk" : "tollgate-agent-sdk"} — MIT license
+              {active.startsWith("publisher") ? "ai-paywall-sdk-sui" : "ai-paywall-agent-sdk-sui"} v1.0.0 — MIT license — SUI Move
             </span>
           </div>
         </motion.div>
