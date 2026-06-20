@@ -1,84 +1,138 @@
-# Tollgate — HTTP 402 Paywall for AI Agents
+# Tollgate — On-Chain AI Paywall on SUI
 
 > **robots.txt was a suggestion. This isn't.**
 
-Tollgate makes AI agent content access **enforceable at the protocol layer**. Publishers drop in two lines of SDK to gate any route and receive USDC micropayments directly in their Solana wallet. AI agents pay automatically, or they don't get in.
+Tollgate makes AI agent access to web content **enforceable at the protocol layer** — using Move smart contracts on SUI. Publishers gate any HTTP route with two lines of code. AI agents pay in SUI, get content unlocked, and the revenue flows on-chain — atomically, trustlessly, without any intermediary.
 
 ---
 
-## Live links
+## Demo Video
+
+[![Tollgate Demo](https://img.shields.io/badge/Watch%20Demo-YouTube-red?style=for-the-badge&logo=youtube)](https://youtu.be/YOUR_VIDEO_ID_HERE)
+
+> _Replace the link above with your actual YouTube video URL_
+
+---
+
+## Live Links
 
 | Resource | URL |
 |---|---|
-| Landing page | tollgate.xyz|
+| Frontend | https://sui.tollgate.xyz |
 | Facilitator API | https://ai-paywall-production-f453.up.railway.app |
 | Publisher SDK (npm) | https://www.npmjs.com/package/tollgate-sdk |
 | Agent SDK (npm) | https://www.npmjs.com/package/tollgate-agent-sdk |
-| Publisher docs | https://tollgate.xyz/docs/publisher |
-| Agent docs | https://tollgate.xyz/docs/agent |
-| Demo URL | https://youtu.be/j6HCCdw-Sas|
-
+| SUI Explorer — Package | https://suiscan.xyz/testnet/object/0x39ec449717b8df2737423620ed3a893899cc35d08a974505f0bafee2bf190168 |
 
 ---
 
-## What this solves
+## The Problem
 
-AI crawlers (GPTBot, ClaudeBot, PerplexityBot) scrape web content at scale, train on it, and return zero revenue to publishers. `robots.txt` is advisory — it's ignored when economically convenient.
+AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Bytespider) scrape web content at scale, train on it, and return zero revenue to the publishers who created it. `robots.txt` is advisory — it is routinely ignored when economically convenient.
 
-Tollgate attaches a **price tag** to bot access using HTTP 402 Payment Required. The server issues a signed payment challenge; the agent submits a USDC transfer on Solana and retries with a payment header. Content unlocks in ~400ms. USDC lands directly in the publisher's wallet — no platform cut, no intermediary.
+Tollgate attaches a **price tag** to bot access using HTTP 402 Payment Required. The paywall is enforced by a Move smart contract on SUI — not a database, not a trusted server, not a signature check that can be faked. The challenge object is consumed on-chain, making replay attacks structurally impossible.
 
 ---
 
-## How it works
+## How It Works
 
 ```
-AI Agent                    Publisher Server              Solana
-   │                              │                          │
-   │── GET /article ─────────────▶│                          │
-   │                              │  (bot fingerprint)       │
-   │◀── HTTP 402 ─────────────────│                          │
-   │    {                         │                          │
-   │      payTo: "<wallet ATA>",  │                          │
-   │      amount: 1000 µUSDC,     │                          │
-   │      challenge: "tok_9fK2"   │                          │
-   │    }                         │                          │
-   │                              │                          │
-   │── USDC transfer ────────────────────────────────────────▶│
-   │                              │                          │
-   │── GET /article ─────────────▶│                          │
-   │   X-PAYMENT: <signed_tx>     │── verify tx ────────────▶│
-   │   x-paywall-challenge: ...   │◀── confirmed ────────────│
-   │                              │                          │
-   │◀── HTTP 200 + content ───────│                          │
+AI Agent                  Publisher Server              SUI Blockchain
+   │                            │                              │
+   │── GET /article ───────────▶│                              │
+   │   User-Agent: GPTBot       │ (bot detected)               │
+   │                            │── create_challenge() ───────▶│
+   │                            │◀── PaywallChallenge obj ─────│
+   │◀── HTTP 402 ───────────────│                              │
+   │    {                       │                              │
+   │      challengeObjectId,    │                              │
+   │      priceMist: 1_000_000, │                              │
+   │      packageId,            │                              │
+   │      target: pay_and_unlock│                              │
+   │    }                       │                              │
+   │                            │                              │
+   │── PTB: pay_and_unlock() ──────────────────────────────────▶│
+   │   (challenge, coin, clock) │            challenge deleted  │
+   │                            │            PaymentVerified    │
+   │── GET /article ───────────▶│            event emitted     │
+   │   X-SUI-PAYMENT-TX: <dig>  │── verify tx on-chain ───────▶│
+   │   X-SUI-CHALLENGE-ID: <id> │◀── PaymentVerified event ────│
+   │                            │                              │
+   │◀── HTTP 200 + content ─────│                              │
 ```
 
-1. AI bot hits a protected route → server returns HTTP 402 with an x402 payment envelope
-2. Agent SDK reads the envelope, submits a USDC SPL transfer on Solana, retries with `X-PAYMENT` and `x-paywall-challenge` headers
-3. Facilitator verifies the on-chain transaction via Solana RPC — replays are blocked via Supabase cache
-4. Content unlocked. USDC lands in the publisher's wallet. No intermediary.
+1. AI bot hits a protected route → server calls `create_challenge()` on SUI, returns a 402 with the shared object ID
+2. Agent builds a Programmable Transaction Block (PTB): `pay_and_unlock(challenge, coin, clock)`
+3. The challenge object is **consumed** on-chain — this is the replay protection. A second attempt with the same object ID fails because the object no longer exists
+4. Server reads the `PaymentVerified` event from the transaction to confirm payment
+5. Content unlocked. SUI lands directly in the publisher's wallet
 
 ---
 
-## Try it in 30 seconds
+## Smart Contracts
+
+**Package ID (Testnet):**
+```
+0x39ec449717b8df2737423620ed3a893899cc35d08a974505f0bafee2bf190168
+```
+
+**Network:** SUI Testnet
+
+### `tollgate::paywall`
+
+The core paywall module. Handles single-recipient payments.
+
+| Function | Description |
+|---|---|
+| `create_challenge(resource, publisher, price_mist, expires_at_ms)` | Server calls this to create a shared `PaywallChallenge` object |
+| `pay_and_unlock(challenge, coin, clock)` | Agent calls this in a PTB to pay and consume the challenge. Returns overpayment to sender |
+
+Emits: `PaymentVerified { challenge_id, payer, publisher, resource, amount_mist }`
+
+### `tollgate::vault`
+
+Revenue-splitting vault. A publisher deploys one `PublisherVault` that encodes how incoming payments are routed across publisher / content pool / protocol — all in basis points. Stats accumulate on-chain without an indexer.
+
+| Function | Description |
+|---|---|
+| `create_vault(publisher_bps, pool_address, pool_bps, protocol_address, protocol_bps)` | Publisher calls once to register their routing config |
+| `pay_and_unlock_split(challenge, vault, coin, clock)` | Agent pays via split routing. Atomically transfers each portion in one PTB |
+
+Emits: `SplitPaymentReceived { vault_id, challenge_id, payer, publisher, total_mist, publisher_mist, pool_mist, protocol_mist }`
+
+---
+
+## Bot Detection
+
+The server uses multi-signal scoring to identify AI crawlers without adding any latency for human visitors. Scoring is entirely local — no network call.
+
+| Signal | Weight | Examples |
+|---|---|---|
+| User-Agent pattern | High | GPTBot, ClaudeBot, PerplexityBot, Bytespider, ChatGPT-User |
+| Missing browser headers | Medium | No `Accept-Language`, no `Sec-Fetch-*` headers |
+| Datacenter IP CIDR | Medium | AWS, GCP, Azure, Cloudflare ranges |
+| Reverse DNS | Medium | Hostname resolves to known crawler infrastructure |
+
+Score ≥ threshold → HTTP 402. Humans pass through with zero overhead.
+
+---
+
+## Quick Start
+
+### Hit the live server
 
 ```bash
-# 1. Hit the live server as a human — passes through
+# Health check
 curl https://ai-paywall-production-f453.up.railway.app/health
 
-# 2. Hit it as an AI bot — gets HTTP 402
+# As a human — passes through with 200
+curl https://ai-paywall-production-f453.up.railway.app/articles/test
+
+# As an AI bot — blocked with 402 + on-chain challenge
 curl -A "GPTBot/1.0" https://ai-paywall-production-f453.up.railway.app/articles/test
-# → HTTP 402 with x402 payment envelope
-
-# 3. Use the Publisher SDK on your own server (see below)
-npm install tollgate-sdk
-
-# 4. Use the Agent SDK to pay programmatically (see below)
-npm install tollgate-agent-sdk @solana/web3.js @solana/spl-token @x402-solana/core
 ```
 
----
-
-## Publisher SDK — gate your content
+### Publisher SDK — gate your content
 
 ```bash
 npm install tollgate-sdk
@@ -89,66 +143,47 @@ import { createPaywall } from "tollgate-sdk";
 import { expressMiddleware } from "tollgate-sdk/express";
 
 const paywall = createPaywall({
-  walletAddress: process.env.SOLANA_WALLET_ADDRESS, // your wallet — USDC lands here
-  network: "mainnet-beta",                          // or "devnet" for testing
-  protect: ["/articles/*", "/api/data/*"],          // glob patterns to gate
-  basePriceMicroUsdc: 1_000,                        // $0.001 per crawl
+  walletAddress: process.env.SUI_PUBLISHER_ADDRESS,
+  network: "testnet",
+  protect: ["/articles/*", "/api/data/*"],
+  basePriceMist: 1_000_000,  // 0.001 SUI per crawl
 });
 
 app.use(expressMiddleware(paywall));
-
-// Paid requests expose payment info on req
-app.get("/articles/:slug", (req, res) => {
-  res.json({ content: "...", paid: true, sig: req.paywallPayment?.signature });
-});
 ```
 
-Adapters included: **Express · Next.js App Router · Fastify · Cloudflare Workers**
+Adapters: **Express · Next.js App Router · Fastify · Cloudflare Workers**
 
-Full reference: [docs/PUBLISHER.md](docs/PUBLISHER.md) · [online docs](https://tollgate.vercel.app/docs/publisher)
-
----
-
-## Agent SDK — pay paywalls automatically
+### Agent SDK — pay paywalls automatically
 
 ```bash
-npm install tollgate-agent-sdk @solana/web3.js @solana/spl-token @x402-solana/core
+npm install tollgate-agent-sdk
 ```
 
 ```js
-import { createAgentPaywallClient, fromKeypairFile } from "tollgate-agent-sdk";
+import { createAgentPaywallClient } from "tollgate-agent-sdk";
 
 const client = createAgentPaywallClient({
-  network: "mainnet-beta",
-  signer: fromKeypairFile(),         // reads ~/.config/solana/id.json
-  maxAmountMicroUsdc: 10_000,        // hard cap: $0.01 per request
-  maxTotalMicroUsdc: 1_000_000,      // session budget: $1.00
+  network: "testnet",
+  secretKey: process.env.SUI_AGENT_SECRET_KEY,
+  maxPriceMist: 5_000_000,   // hard cap per request
 });
 
 // Drop-in fetch — auto-pays 402s, retries transparently
 const res = await client.fetch("https://example.com/articles/ai-trends", {
-  headers: {
-    "User-Agent": "GPTBot"
-  }
+  headers: { "User-Agent": "GPTBot" },
 });
-const data = await res.json();
-
-console.log("paid:", res.paywallPayment?.signature);
-console.log("total spend:", client.spend(), "µUSDC");
 ```
-
-Full reference: [docs/AGENT.md](docs/AGENT.md) · [online docs](https://tollgate.vercel.app/docs/agent)
 
 ---
 
-## Run locally
+## Run Locally
 
 ### Prerequisites
 
 - Node.js ≥ 18
-- A [Supabase](https://supabase.com) project
-- A Solana wallet address (receives payments)
-- Optional: a funded devnet wallet for testing
+- SUI CLI (`brew install sui`)
+- A SUI testnet wallet with SUI for gas
 
 ### 1. Clone and install
 
@@ -158,232 +193,162 @@ cd ai-paywall
 npm install
 ```
 
-### 2. Set up Supabase
-
-Open the [Supabase SQL editor](https://app.supabase.com) and run the contents of `supabase/schema.sql`. This creates:
-- `payments` — payment analytics, keyed by wallet address
-- `verified_tx_cache` — replay protection (one Solana tx → one unlock)
-
-### 3. Configure environment
-
-Copy and fill in `.env` at the repo root:
+### 2. Configure environment
 
 ```bash
-# Your Solana wallet — USDC payments land here directly
-WALLET_ADDRESS=YourSolanaWalletBase58...
-
-# Solana network
-SOLANA_NETWORK=devnet
-SOLANA_RPC_URL=https://api.devnet.solana.com   # use a paid RPC in production
-
-# Supabase
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-
-# HMAC secrets — generate with: openssl rand -hex 32
-PAYWALL_CHALLENGE_SECRET=<32-byte-hex>
-PAYWALL_AUTH_SECRET=<32-byte-hex>
-PAYWALL_AUTH_DOMAIN=localhost:3000
-
-# Optional: fee payer keypair for auto-creating recipient USDC ATAs
-# JSON array from `solana-keygen new` or base58-encoded secret
-FACILITATOR_FEE_PAYER_SECRET_KEY=[...]
-
-PORT=3000
+cp .env.example .env
 ```
 
-### 4. Start the facilitator server
+Fill in these required variables:
+
+```env
+SUI_SERVER_SECRET_KEY=suiprivkey1...   # bech32 private key (run: sui keytool export --key-identity <alias>)
+SUI_PACKAGE_ID=0x39ec449717b8df2737423620ed3a893899cc35d08a974505f0bafee2bf190168
+SUI_NETWORK=testnet
+PORT=3001
+
+# Optional — who receives payments (defaults to server address)
+SUI_PUBLISHER_ADDRESS=0x...
+
+# Optional — enable split payments
+SUI_VAULT_ID=0x...
+```
+
+### 3. Start the server
 
 ```bash
 npm start
-# Server running at http://localhost:3000
+# ⛓️  Tollgate SUI Server running on http://localhost:3001
 ```
 
-### 5. (Optional) Run the landing page locally
+### 4. Test the paywall flow
+
+```bash
+# Human request — passes through
+curl http://localhost:3001/articles/test
+
+# Bot request — gets 402 with on-chain challenge
+curl -A "GPTBot/1.0" http://localhost:3001/articles/test
+
+# End-to-end SUI payment test
+npm run test:sui
+```
+
+### 5. Run the landing page locally
 
 ```bash
 cd landing
 npm install
 npm run dev
-# Open http://localhost:3001
+# http://localhost:3000
 ```
 
 ---
 
-## Testing
+## API Reference
 
-### Smoke tests (curl)
+Base URL: `https://ai-paywall-production-f453.up.railway.app`
 
-```bash
-# Health check
-curl http://localhost:3000/health
-# → { "status": "ok", "uptime": N }
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/health` | Health check |
+| `GET` | `/sui/v1/info` | Server config — address, package ID, network |
+| `POST` | `/sui/v1/challenge` | Create an on-chain `PaywallChallenge` object |
+| `POST` | `/sui/v1/verify` | Verify a `pay_and_unlock` transaction |
+| `POST` | `/sui/v1/vault/create` | Create a `PublisherVault` with split config |
+| `GET` | `/sui/v1/vault/:id` | Read vault stats from chain |
+| `POST` | `/sui/v1/vault/verify` | Verify a `pay_and_unlock_split` transaction |
 
-# Human browser request — passes through with 200
-curl http://localhost:3000/articles/test
+### POST `/sui/v1/challenge`
 
-# AI bot request — blocked with 402
-curl -A "GPTBot/1.0" http://localhost:3000/articles/test
-# → 402 with x402 envelope containing payTo, amount, challenge
-
-# Multiple known bot UAs
-curl -A "ClaudeBot/1.0" http://localhost:3000/articles/test
-curl -A "PerplexityBot/1.0" http://localhost:3000/articles/test
+```json
+{
+  "resource": "/articles/test",
+  "publisherAddress": "0x...",
+  "priceMist": 1000000
+}
 ```
 
-### End-to-end payment flow
+### POST `/sui/v1/verify`
 
-This test performs a real on-chain USDC payment on devnet and verifies the full 402 → pay → 200 flow:
-
-```bash
-# Prerequisites: funded devnet wallet at ~/.config/solana/id.json
-# Get devnet SOL:  solana airdrop 2 --url devnet
-# Get devnet USDC: https://faucet.circle.com (mint: 4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU)
-
-# Against the local server
-npm run test:e2e
-
-# Against the live deployed server
-BASE_URL=https://ai-paywall-production-f453.up.railway.app npm run test:e2e
-
-# Against your own consumer service
-CONSUMER_URL=http://localhost:4010 node e2e-sdk-flow.js
+```json
+{
+  "txDigest": "AbCd...",
+  "challengeObjectId": "0x...",
+  "publisherAddress": "0x...",
+  "priceMist": 1000000
+}
 ```
-
-The test:
-1. Sends a bot request → asserts `HTTP 402`
-2. Reads the x402 envelope (`payTo`, `amount`, `challenge`)
-3. Submits a USDC SPL transfer on Solana devnet
-4. Retries with `X-PAYMENT` + `x-paywall-challenge` headers → asserts `HTTP 200`
 
 ---
 
-## Project structure
+## Payment Modes
+
+### Simple mode (default)
+
+Agent calls `tollgate::paywall::pay_and_unlock`. Full payment goes directly to the publisher address.
 
 ```
-ai-paywall/
-├── packages/
-│   ├── ai-paywall-sdk/           # tollgate-sdk (npm)
-│   │   └── src/
-│   │       ├── index.js              # createPaywall()
-│   │       ├── core/
-│   │       │   ├── paywall.js        # framework-agnostic orchestrator
-│   │       │   ├── botDetector.js    # multi-signal bot scoring
-│   │       │   └── client.js         # facilitator API client
-│   │       └── adapters/
-│   │           ├── express.js
-│   │           ├── nextjs.js
-│   │           ├── fastify.js
-│   │           └── cloudflare.js
-│   └── ai-paywall-agent-sdk/     # tollgate-agent-sdk (npm)
-│       └── src/
-│           ├── index.js              # createAgentPaywallClient()
-│           └── core/
-│               ├── client.js         # fetch() wrapper + payment loop
-│               ├── payment.js        # USDC transfer builder
-│               ├── signer.js         # keypair helpers (file, array, base58, custom)
-│               ├── guards.js         # safety policy + budget enforcement
-│               ├── spendTracker.js   # per-session spend tracking + coalescing
-│               └── errors.js         # typed error classes
+PTB: splitCoins(gas, [priceMist]) → pay_and_unlock(challenge, coin, clock)
+```
+
+### Split mode (vault)
+
+Agent calls `tollgate::vault::pay_and_unlock_split`. Payment is atomically split across publisher / pool / protocol in one transaction.
+
+```
+PTB: splitCoins(gas, [priceMist]) → pay_and_unlock_split(challenge, vault, coin, clock)
+```
+
+Example split: Publisher 80% · Content Pool 15% · Protocol 5%
+
+---
+
+## Project Structure
+
+```
+tollgate-sui/
+├── move/tollgate/
+│   ├── sources/
+│   │   ├── paywall.move          # Core challenge/unlock logic
+│   │   └── vault.move            # Revenue-splitting vault
+│   └── Move.toml
 │
-├── server/                       # Facilitator server (deployed on Railway)
-│   ├── index.js                  # Express entry point
+├── server/
+│   ├── sui-index.js              # Express entry point
 │   ├── routes/
-│   │   ├── v1.js                 # /v1/challenge, /v1/verify, /v1/auth/*, /v1/dashboard
-│   │   ├── content.js            # catch-all content route (402 for bots, passthrough for humans)
-│   │   ├── dashboard.js          # /dashboard HTML UI
-│   │   └── policy.js             # /.well-known/ai-policy.json
-│   ├── middleware/
-│   │   └── aiDetector.js         # composite bot scoring middleware
-│   └── services/
-│       ├── verifyPayment.js      # on-chain USDC verification via Solana RPC
-│       ├── paymentChallenge.js   # HMAC-signed challenge token issuance
-│       ├── walletAuth.js         # Sign-In With Solana session management
-│       ├── relevanceScorer.js    # dynamic pricing engine
-│       └── verifyPaymentForWallet.js
+│   │   ├── suiApi.js             # /sui/v1/* endpoints
+│   │   └── suiContent.js         # Catch-all content route (402 / verify / unlock)
+│   ├── services/
+│   │   └── suiPaywall.js         # SUI RPC client, transaction building, event parsing
+│   └── middleware/
+│       └── aiDetector.js         # Multi-signal bot scoring
 │
-├── client/
-│   └── dashboard.html            # Analytics dashboard UI
-├── landing/                      # Next.js marketing site (deployed on Vercel)
-├── supabase/
-│   └── schema.sql                # Postgres schema (run once in Supabase SQL editor)
-├── docs/
-│   ├── PUBLISHER.md              # Full publisher integration guide
-│   └── AGENT.md                  # Full agent SDK guide
+├── packages/
+│   ├── ai-paywall-sdk/           # tollgate-sdk (publisher)
+│   └── ai-paywall-agent-sdk/     # tollgate-agent-sdk (agent)
+│
+├── landing/                      # Next.js 14 marketing site
+├── scripts/
+│   ├── export-sui-key.js         # Export server keypair
+│   └── pay-challenge.js          # Manual payment testing
 └── test/
-    ├── e2e.js                    # End-to-end test suite (real devnet payments)
-    └── e2e-sdk-flow.js           # SDK-level e2e flow
+    └── sui-e2e.js                # End-to-end SUI payment test
 ```
 
 ---
 
-## API reference
-
-All SDK-facing endpoints are stateless and unauthenticated.
-
-### SDK endpoints
-
-| Method | Route | Description |
-|--------|-------|-------------|
-| `POST` | `/v1/challenge` | Issue an x402 payment challenge for a wallet + resource |
-| `POST` | `/v1/verify` | Verify an on-chain USDC payment against a challenge |
-| `GET` | `/v1/wallet/treasury` | Look up the USDC ATA for a wallet address |
-
-### Dashboard (Sign-In With Solana)
-
-| Method | Route | Description |
-|--------|-------|-------------|
-| `POST` | `/v1/auth/nonce` | Request a SIWS challenge nonce |
-| `POST` | `/v1/auth/verify` | Submit signed nonce, receive 24h session token |
-| `GET` | `/v1/dashboard` | Fetch payment analytics for the authenticated wallet |
-
-### Utility
-
-| Method | Route | Description |
-|--------|-------|-------------|
-| `GET` | `/health` | Health check — `{ status: "ok", uptime: N }` |
-| `GET` | `/.well-known/ai-policy.json` | Machine-readable pricing policy |
-| `GET` | `/dashboard` | Dashboard HTML UI |
-
----
-
-## Bot detection
-
-The server uses a multi-signal scoring approach to identify AI crawlers without blocking human visitors:
-
-| Signal | Weight | Examples |
-|--------|--------|---------|
-| User-Agent pattern | High | `GPTBot`, `ClaudeBot`, `PerplexityBot`, `Googlebot`, `bingbot` |
-| Missing browser headers | Medium | No `Accept-Language`, no `Sec-Fetch-*` |
-| Datacenter IP CIDR | Medium | AWS, GCP, Azure, Cloudflare CIDR ranges |
-| Reverse DNS | Medium | Hostname resolves to known crawler infra |
-| `robots.txt` fetch spike | Low | Crawler fingerprint pattern |
-
-Score ≥ threshold → HTTP 402 with x402 envelope. Humans pass through without any latency penalty (scoring is local, no network call).
-
----
-
-## Tech stack
+## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
-| Facilitator server | Node.js (ES Modules), Express |
-| Blockchain | Solana (devnet + mainnet-beta) |
-| Token | USDC SPL token |
-| Payment protocol | x402 (`@x402-solana/core`) |
-| Database | Supabase Postgres |
-| Dashboard auth | Sign-In With Solana (stateless HMAC-signed sessions) |
-| Landing page | Next.js 14, Tailwind CSS, Framer Motion |
-| Deployment | Railway (server) + Vercel (landing) |
-
----
-
-## Documentation
-
-- [Publisher guide](docs/PUBLISHER.md) — install the SDK, gate content, configure pricing, dashboard auth
-- [Agent guide](docs/AGENT.md) — auto-pay 402s, budget limits, LangChain tool, typed errors
-- [Online publisher docs](https://tollgate.vercel.app/docs/publisher)
-- [Online agent docs](https://tollgate.vercel.app/docs/agent)
+|---|---|
+| Smart contracts | Move on SUI |
+| Payment token | SUI (MIST) |
+| Server | Node.js (ES Modules), Express |
+| Bot detection | Multi-signal UA + IP + DNS scoring |
+| Frontend | Next.js 14, Tailwind CSS, Framer Motion |
+| Deployment | Railway (server) · Vercel (frontend) |
+| SUI SDK | `@mysten/sui` |
 
 ---
 

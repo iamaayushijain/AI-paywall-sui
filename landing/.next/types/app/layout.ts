@@ -1,4 +1,4 @@
-// File: /Users/rishabhkumarjain/ai-paywall/landing/app/layout.tsx
+// File: /Users/rishabhkumarjain/Desktop/AI-paywall-sui/landing/app/layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
